@@ -21,4 +21,6 @@ contract MetaCampPass is ERC721Drop {
             _primarySaleRecipient
         )
     {}
+
+    
 }
