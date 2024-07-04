@@ -11,13 +11,40 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 contract MetaCampVibes is ERC721, ERC721URIStorage, ERC721Pausable, AccessControl, ERC721Burnable {
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
     uint256 private _nextTokenId;
+    string private _baseTokenURI;
+
+    mapping(address => bool) private _whitelist;
 
     constructor() ERC721("MetaCamp Vibes", "MCV") {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _baseTokenURI = "example.com"; // Set a default base URI
     }
 
-    function _baseURI() internal pure override returns (string memory) {
-        return "example.com";
+    function _baseURI() internal view override returns (string memory) {
+        return _baseTokenURI;
+    }
+
+    function setBaseURI(string memory newBaseURI) public onlyRole(MANAGER_ROLE) {
+        _baseTokenURI = newBaseURI;
+    }
+
+    function safeMint(address to) public {
+        require(isWhitelisted(to), "MetaCampVibes: recipient is not whitelisted");
+
+        uint256 tokenId = _nextTokenId++;
+        _safeMint(to, tokenId);
+    }
+
+    function addToWhitelist(address account) public onlyRole(MANAGER_ROLE) {
+        _whitelist[account] = true;
+    }
+
+    function removeFromWhitelist(address account) public onlyRole(MANAGER_ROLE) {
+        _whitelist[account] = false;
+    }
+
+    function isWhitelisted(address account) public view returns (bool) {
+        return _whitelist[account];
     }
 
     function pause() public onlyRole(MANAGER_ROLE) {
@@ -28,18 +55,12 @@ contract MetaCampVibes is ERC721, ERC721URIStorage, ERC721Pausable, AccessContro
         _unpause();
     }
 
-    function safeMint(address to, string memory uri) public {
-        uint256 tokenId = _nextTokenId++;
-        _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
-    }
-
     function grantManagerRole(address account) public onlyRole(DEFAULT_ADMIN_ROLE) {
         _grantRole(MANAGER_ROLE, account);
     }
 
-    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
-        super._burn(tokenId);
+    function burn(uint256 tokenId) public override(ERC721Burnable) {
+        super.burn(tokenId);
     }
 
     // The following functions are overrides required by Solidity.
@@ -51,12 +72,8 @@ contract MetaCampVibes is ERC721, ERC721URIStorage, ERC721Pausable, AccessContro
         super._beforeTokenTransfer(from, to, tokenId, batchSize);
     }
 
-    function _update(address to, uint256 tokenId, address auth)
-        internal
-        override(ERC721, ERC721Pausable)
-        returns (address)
-    {
-        return super._update(to, tokenId, auth);
+    function _burn(uint256 tokenId) internal override(ERC721, ERC721URIStorage) {
+        super._burn(tokenId);
     }
 
     function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory) {
