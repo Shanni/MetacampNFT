@@ -5,16 +5,13 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract MetaCampPass is ERC721Enumerable, Ownable, ReentrancyGuard {
+contract MetaCampPass1 is ERC721Enumerable, Ownable, ReentrancyGuard {
     mapping(address => bool) public whitelist;
     bool public saleActive = false;
 
     address primarySaleRecipient;
-    constructor(
-        address _defaultAdmin,
-        string memory _name,
-        string memory _symbol
-    )
+
+    constructor(address _defaultAdmin, string memory _name, string memory _symbol)
         ERC721Enumerable()
         ERC721(_name, _symbol)
     {
@@ -26,7 +23,7 @@ contract MetaCampPass is ERC721Enumerable, Ownable, ReentrancyGuard {
     function setPrimarySaleRecipient(address _primarySaleRecipient) external onlyOwner {
         primarySaleRecipient = _primarySaleRecipient;
     }
-    
+
     function setLoyaltyRecipient(address _loyaltyRecipient, uint128 _loyaltyBps) external onlyOwner {
         _setRoyaltyRecipient(_loyaltyRecipient, _loyaltyBps);
     }
@@ -66,22 +63,16 @@ contract MetaCampPass is ERC721Enumerable, Ownable, ReentrancyGuard {
     }
 
     // Override _beforeTokenTransfer to enforce additional rules if necessary
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal virtual override(ERC721Enumerable) {
+    function _beforeTokenTransfer(address from, address to, uint256 tokenId)
+        internal
+        virtual
+        override(ERC721Enumerable)
+    {
         super._beforeTokenTransfer(from, to, tokenId);
     }
 
     // Override supportsInterface to include the interfaces this contract implements
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC721Enumerable)
-        returns (bool)
-    {
+    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Enumerable) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }
